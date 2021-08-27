@@ -1,8 +1,7 @@
 use std::io::Read;
 use std::fs::File;
 use nxcloud_notes_rs::httprequest::LiteHttpClient;
-use nxcloud_notes_rs::httprequest::HttpRequest;
-use nxcloud_notes_rs::httprequest::RequestType;
+use nxcloud_notes_rs::nextcloudclient::NextCloudClient;
 
 fn main() {
     // TODO: implement actual credentials provider
@@ -11,22 +10,17 @@ fn main() {
     let mut splitter = config_file_contents.splitn(2, ",");
     let username = splitter.next().unwrap();
     let password = splitter.next().unwrap();
-    println!("{}: {}", username, password);
+ 
+    let http_client = LiteHttpClient::new("storage.callums-stuff.net".to_string(), 443);
+    let nextcloud_client = NextCloudClient::new(http_client, username.to_string(), password.to_string());
+    let result = nextcloud_client.create_or_replace_file("/Notes/testfile.txt", b"Hello front nextcloud client!");
 
-    let http_client = LiteHttpClient::new("storage.callums-stuff.net".to_string(), 443, "/remote.php/dav/files/CallumHoughton22/Notes/testfile.txt".to_string());
-    let call_result = http_client
-    .set_request(RequestType::PUT, "/remote.php/dav/files/CallumHoughton22/Notes/testfile.txt")
-    .basic_auth(&username, &password)
-    .set_header("OCS-APIRequest".to_string(), "true".to_string())
-    .set_header("Connection".to_string(), "closed".to_string())
-    .send_bytes(b"hello world!");
-
-    match call_result {
-        Ok(res) => {
-            println!("code: {} \r\nresponse: {}", res.response_code, res.response_msg);
+    match result {
+        Ok(msg) => {
+            println!("success: {}", msg);
         },
         Err(e) => {
-            println!("{}", e);
+            println!("oopsy!: {}", e);
         }
     }
 }

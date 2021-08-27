@@ -20,20 +20,24 @@ pub struct LiteHttpClient {
 }
 
 impl LiteHttpClient {
-    pub fn new(base_address: String, port: u32, request_line: String) -> Self {
+    pub fn new(base_address: String, port: u32) -> Self {
         LiteHttpClient {
             base_address,
             port,
-            request_line,
+            request_line: "/".to_string(),
             headers: HashMap::new()
         }
     }
-    fn connect_to_server(&self) -> SslStream<TcpStream> {
-        let connector = SslConnector::builder(SslMethod::tls()).unwrap().build();
+    fn connect_to_server(&self) -> Result<SslStream<TcpStream>,Box<dyn Error>> {
+        let connector = SslConnector::builder(SslMethod::tls())?.build();
         let address_with_port = format!("{}:{}", self.base_address, self.port);
-        let stream = TcpStream::connect(address_with_port).unwrap();
-        let stream = connector.connect(&self.base_address, stream).unwrap();
-        return stream;
+
+        if let Ok(stream) = TcpStream::connect(address_with_port) {
+            let ssl_stream = connector.connect(&self.base_address, stream)?;
+            Ok(ssl_stream)
+        } else {
+            Err("Unable to connect to given host")?
+        }
     }
 
     fn parse_response(&self, stream: SslStream<TcpStream>) -> Result<HttpResponse, Box<dyn Error>> {
@@ -93,11 +97,10 @@ impl HttpRequest for LiteHttpClient {
     }
 
     fn send_bytes(mut self, bytes: &[u8]) -> Result<HttpResponse, Box<dyn Error>> {
-        let mut stream = self.connect_to_server();
+        let mut stream = self.connect_to_server()?;
 
         let mut request_data = String::new();
         request_data.push_str(&self.request_line);
-        println!("{}", request_data);
 
         self.headers.insert(String::from("Accept"), String::from("*/*"));
         self.headers.insert(String::from("Content-Length"), bytes.len().to_string());
