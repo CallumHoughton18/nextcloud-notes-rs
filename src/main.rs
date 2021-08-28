@@ -1,3 +1,6 @@
+use nxcloud_notes_rs::configprovider::NxCloudNotesConfigData;
+use nxcloud_notes_rs::configprovider::NxCloudConfigRetriever;
+use nxcloud_notes_rs::configprovider::FileSystemNxCloudConfig;
 use std::io::Read;
 use std::fs::File;
 use nxcloud_notes_rs::httprequest::LiteHttpClient;
@@ -10,6 +13,14 @@ fn main() {
     let mut splitter = config_file_contents.splitn(2, ",");
     let username = splitter.next().unwrap();
     let password = splitter.next().unwrap();
+
+    let config_provider = FileSystemNxCloudConfig::new("test-config.toml");
+    config_provider.create_new_config(NxCloudNotesConfigData {
+        server_address: "test".to_string(),
+        base_notes_directory: "/test".to_string(),
+        user_name: "test".to_string(),
+        password: Some("TestPassword".to_string())
+    }).unwrap();
  
     let http_client = LiteHttpClient::new("storage.callums-stuff.net".to_string(), 443);
     let nextcloud_client = NextCloudClient::new(http_client, username.to_string(), password.to_string());
