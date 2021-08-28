@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 use std::fs::File;
-use std::path::Path;
 use std::error::Error;
 use serde::{Deserialize, Serialize};
-use directories_next::{BaseDirs, UserDirs, ProjectDirs};
+use directories_next::{ProjectDirs};
 use std::fs;
 use std::io::Write;
 
@@ -16,9 +15,9 @@ pub struct NxCloudNotesConfigData {
 }
 
 pub trait NxCloudConfigRetriever {
-    fn has_config(self) -> bool;
-    fn load_config(config_name: &str) -> Result<NxCloudNotesConfigData, Box<dyn Error>>;
-    fn create_new_config(self, config: NxCloudNotesConfigData) -> Result<bool, Box<dyn Error>>;
+    fn has_config(&self) -> Result<bool, Box<dyn Error>>;
+    fn load_config(&self) -> Result<NxCloudNotesConfigData, Box<dyn Error>>;
+    fn create_new_config(&self, config: NxCloudNotesConfigData) -> Result<bool, Box<dyn Error>>;
 }
 
 pub struct FileSystemNxCloudConfig<'a> {
@@ -42,29 +41,20 @@ impl<'a> FileSystemNxCloudConfig<'a> {
 }
 
 impl<'a> NxCloudConfigRetriever for FileSystemNxCloudConfig<'a> {
-    fn has_config(self) -> bool {
-        match &self.get_config_dir() {
-            Ok(path) => {
-                true
-            },
-            Err(e) => {
-                false
-            }
-        }
+    fn has_config(&self) -> Result<bool, Box<dyn Error>> {
+        let config_path = &self.get_config_dir()?.join(&self.config_name);
+        Ok(config_path.exists())
     }
     
-    fn load_config(config_name: &str) -> Result<NxCloudNotesConfigData, Box<dyn Error>> {
-        todo!();
-        // if let Some(proj_dirs) = ProjectDirs::from("com", "", "NxCloudNotes") {
-        //     let config_dir = proj_dirs.config_dir();
-        //     fs::create_dir_all(config_dir)?;
+    fn load_config(&self) -> Result<NxCloudNotesConfigData, Box<dyn Error>> {
+        let config_path = &self.get_config_dir()?.join(&self.config_name);
+        let config_contents = fs::read_to_string(config_path)?;
 
-        // }
-        // let config: NxCloudNotesConfigData = confy::load(config_name)?;
-        // Ok(config)
+        let config_deserialized: NxCloudNotesConfigData = toml::from_str(&config_contents)?;
+        Ok(config_deserialized)
     }
 
-    fn create_new_config(self, config: NxCloudNotesConfigData) -> Result<bool, Box<dyn Error>> {
+    fn create_new_config(&self, config: NxCloudNotesConfigData) -> Result<bool, Box<dyn Error>> {
         let config_dir = &self.get_config_dir()?;
         if !config_dir.exists() {
             fs::create_dir(config_dir)?;
