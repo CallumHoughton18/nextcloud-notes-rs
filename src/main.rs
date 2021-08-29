@@ -3,12 +3,17 @@ use nxcloud_notes_rs::configprovider::NxCloudConfigRetriever;
 use nxcloud_notes_rs::configprovider::FileSystemNxCloudConfig;
 use nxcloud_notes_rs::httprequest::LiteHttpClient;
 use nxcloud_notes_rs::nextcloudclient::NextCloudClient;
+use std::io::{self};
 
 fn main() {
     let config_provider = FileSystemNxCloudConfig::new("test-config.toml");
 
-    if !config_provider.has_config().expect("An error occurred retrieving user config") {
-        let inputted_config = ask_user_for_config();
+    if config_provider.has_config().expect("An error occurred retrieving user config") {
+        let stdio = io::stdin();
+        let mut input = stdio.lock();
+        let mut output = io::stdout(); 
+           
+        let inputted_config = ask_user_for_config(&mut input, &mut output);
         config_provider.create_new_config(inputted_config).unwrap();
     }
 
