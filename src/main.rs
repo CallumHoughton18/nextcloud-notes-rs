@@ -16,7 +16,6 @@ fn main() {
         let stdio = io::stdin();
         let mut input = stdio.lock();
         let mut output = io::stdout(); 
-           
         let inputted_config = ask_user_for_config(&mut input, &mut output);
         config_provider.create_new_config(inputted_config).unwrap();
     }
@@ -24,7 +23,7 @@ fn main() {
     let config_data = config_provider.load_config().unwrap();
     println!("{:?}", config_data);
  
-    let http_client = LiteHttpClient::new(config_data.server_address, 443);
+    let http_client = LiteHttpClient::new(config_data.server_address, config_data.port);
     let nextcloud_client = NextCloudClient::new(http_client, config_data.user_name, config_data.password.unwrap());
     let result = nextcloud_client.create_or_replace_file("/Notes/testfile.txt", b"Hello front nextcloud client!");
 

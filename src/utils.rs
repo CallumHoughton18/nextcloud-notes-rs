@@ -16,11 +16,20 @@ where
     loop {
         writeln!(&mut writer, "\r\n{}: {}", field_type, request_msg)?;
         reader.read_line(&mut buf)?;
-        // Remove /n ending character
-        buf.pop();
+        trim_newline_characters(&mut buf);
         if !buf.is_empty() || !is_required {
             break;
         }
     }
     Ok(buf)
 }
+
+fn trim_newline_characters(s: &mut String) {
+    if s.ends_with('\n') {
+        s.pop();
+        if s.ends_with('\r') {
+            s.pop();
+        }
+    }
+}
+

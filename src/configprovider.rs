@@ -8,6 +8,7 @@ use std::io::Write;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NxCloudNotesConfigData {
     pub server_address: String,
+    pub port: u32,
     pub base_notes_directory: String,
     pub user_name: String,
     pub password: Option<String>,
