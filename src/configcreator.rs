@@ -2,9 +2,8 @@ use std::io::Write;
 use std::io::BufRead;
 use crate::utils::get_user_input;
 use crate::configprovider::NxCloudNotesConfigData;
-use std::io::{self};
 
-pub fn ask_user_for_config<R, W>(mut reader: &mut R, mut writer: &mut W) -> NxCloudNotesConfigData
+pub fn ask_user_for_config<R, W>(reader: &mut R, writer: &mut W) -> NxCloudNotesConfigData
 where 
     R: BufRead,
     W: Write,

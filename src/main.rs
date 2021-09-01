@@ -1,3 +1,4 @@
+use directories_next::ProjectDirs;
 use nxcloud_notes_rs::configcreator::ask_user_for_config;
 use nxcloud_notes_rs::configprovider::NxCloudConfigRetriever;
 use nxcloud_notes_rs::configprovider::FileSystemNxCloudConfig;
@@ -6,9 +7,12 @@ use nxcloud_notes_rs::nextcloudclient::NextCloudClient;
 use std::io::{self};
 
 fn main() {
-    let config_provider = FileSystemNxCloudConfig::new("test-config.toml");
+    let config_project_dir = ProjectDirs::from("com", "", "NxCloudNotes")
+    .expect("No valid home directory set for the system. Config cannot be saved. App exiting...");
+    let config_dir_path = config_project_dir.config_dir().to_owned();
+    let config_provider = FileSystemNxCloudConfig::new(&config_dir_path, "test-config.toml");
 
-    if config_provider.has_config().expect("An error occurred retrieving user config") {
+    if !config_provider.has_config().expect("An error occurred retrieving user config") {
         let stdio = io::stdin();
         let mut input = stdio.lock();
         let mut output = io::stdout(); 
