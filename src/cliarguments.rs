@@ -4,13 +4,15 @@ use std::fmt::Display;
 use std::vec::IntoIter;
 
 #[derive(Debug, PartialEq)]
-pub enum Cmd {
+pub enum ProgramCommands {
     PostNote(PostNoteCLIConfig),
-    ConfigPath(),
-    Help(),
+    ConfigPath,
+    Help,
 }
 
-enum Operator {
+// for internal use only, this is just the content parsed from the given arguments on the command line
+// what should be returned to the user is the ProgramCommands enum
+enum ParsedCommands {
     PostNote(String),
     ConfigPath,
     Help
@@ -18,9 +20,9 @@ enum Operator {
 
 #[derive(Debug, PartialEq)]
 pub struct PostNoteCLIConfig {
-    password: Option<String>,
-    title: Option<String>,
-    content: String,
+    pub password: Option<String>,
+    pub title: Option<String>,
+    pub content: String,
 }
 
 #[derive(Debug)]
@@ -78,28 +80,29 @@ impl Iterator for ArgIter {
     }
 }
 
-pub fn parse_args(argv: Vec<String>) -> Result<Cmd, String> {
+pub fn parse_args(argv: Vec<String>) -> Result<ProgramCommands, String> {
     let mut args = ArgIter::new(argv);
     // Skip the executable name
     args.next();
 
-    let mut operator = Operator::Help;
+    let mut operator = ParsedCommands::Help;
+    // each supported flag is placed into a hashmap where it can be used
     let mut flag_map = HashMap::new();
 
     while let Some(arg) = args.next() {
         match arg.flag_as_ref() {
-            Arg::Plain("config-path") => operator = Operator::ConfigPath,
-            Arg::Plain("help") => operator = Operator::Help,
-            Arg::Plain(any_other_val) => operator = Operator::PostNote(String::from(any_other_val)),
+            Arg::Plain("config-path") => operator = ParsedCommands::ConfigPath,
+            Arg::Plain("help") => operator = ParsedCommands::Help,
+            Arg::Plain(any_other_val) => operator = ParsedCommands::PostNote(String::from(any_other_val)),
             Arg::Short(flag, value) => {flag_map.insert(String::from(flag), value);}
             _ => return unexpected(arg),
         }
     }
 
     let cmd = match operator {
-        Operator::ConfigPath => Cmd::ConfigPath(),
-        Operator::Help => Cmd::Help(),
-        Operator::PostNote(content) => Cmd::PostNote(parse_flags_to_post_note_cli_config(flag_map, content))
+        ParsedCommands::ConfigPath=> ProgramCommands::ConfigPath,
+        ParsedCommands::Help => ProgramCommands::Help,
+        ParsedCommands::PostNote(content) => ProgramCommands::PostNote(parse_flags_to_post_note_cli_config(flag_map, content))
     };
 
     println!("{:?}", cmd);
@@ -123,14 +126,14 @@ fn unexpected<T>(arg: Arg<String>) -> Result<T, String> {
 mod tests {
     use super::*;
 
-    fn parse_slice(args: &[&'static str]) -> Result<Cmd, String> {
+    fn parse_slice(args: &[&'static str]) -> Result<ProgramCommands, String> {
         let argv = args.iter().map(|s| String::from(*s)).collect();
         parse_args(argv)
     }
     
     #[test]
     fn should_parse_help_command_correctly() {
-        let help_command = Ok(Cmd::Help());
+        let help_command = Ok(ProgramCommands::Help);
         assert_eq!(parse_slice(&["nxcloudnotes", "help"]), help_command);
         assert_eq!(parse_slice(&["nxcloudnotes", "test", "bar" ,"help", "-ttestparams"]), help_command);
         assert_eq!(parse_slice(&["nxcloudnotes", "-t\"testparams\"", "help"]), help_command)
@@ -138,7 +141,7 @@ mod tests {
 
     #[test]
     fn should_parse_config_path_command_correctly() {
-        let config_path_command = Ok(Cmd::ConfigPath());
+        let config_path_command = Ok(ProgramCommands::ConfigPath);
         assert_eq!(parse_slice(&["nxcloudnotes", "config-path"]), config_path_command);
         assert_eq!(parse_slice(&["nxcloudnotes", "test", "bar" ,"config-path", "-ttestparams"]), config_path_command);
         assert_eq!(parse_slice(&["nxcloudnotes", "-ttestparams", "config-path"]), config_path_command)
@@ -146,7 +149,7 @@ mod tests {
 
     #[test]
     fn should_parse_post_note_command_correctly() {
-        let post_note_command = Ok(Cmd::PostNote(PostNoteCLIConfig{
+        let post_note_command = Ok(ProgramCommands::PostNote(PostNoteCLIConfig{
             password: None,
             title: None,
             content: "note content here".to_string()
@@ -156,7 +159,7 @@ mod tests {
 
     #[test]
     fn should_parse_post_note_command_with_flags() {
-        let post_note_command = Ok(Cmd::PostNote(PostNoteCLIConfig{
+        let post_note_command = Ok(ProgramCommands::PostNote(PostNoteCLIConfig{
             password: Some("password".to_string()),
             title: Some("title".to_string()),
             content: String::from("note content here")
