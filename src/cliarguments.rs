@@ -112,7 +112,6 @@ pub fn parse_args(argv: Vec<String>) -> Result<ProgramCommands, String> {
             Arg::Plain("help") => operator = ParsedCommands::Help,
             Arg::Plain(any_other_val) => operator = ParsedCommands::PostNote(String::from(any_other_val)),
             Arg::Short(flag, value) => {flag_map.insert(String::from(flag), value);}
-            _ => return unexpected(arg),
         }
     }
 
@@ -132,10 +131,6 @@ fn parse_flags_to_post_note_cli_config(mut flag_map: HashMap<String, String>, co
         content
     }
 
-}
-
-fn unexpected<T>(arg: Arg<String>) -> Result<T, String> {
-    Err(format!("Unexpected argument {}. See 'tako --help'.", arg))
 }
 
 #[cfg(test)]
