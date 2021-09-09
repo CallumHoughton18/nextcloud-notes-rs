@@ -144,7 +144,7 @@ mod tests {
     
     #[test]
     fn should_parse_help_command_correctly() {
-        let help_command = Ok(ProgramCommands::Help);
+        let help_command = Ok(ProgramCommands::Help(USAGE));
         assert_eq!(parse_slice(&["nxcloudnotes", "help"]), help_command);
         assert_eq!(parse_slice(&["nxcloudnotes", "test", "bar" ,"help", "-ttestparams"]), help_command);
         assert_eq!(parse_slice(&["nxcloudnotes", "-t\"testparams\"", "help"]), help_command)
