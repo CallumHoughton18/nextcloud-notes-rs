@@ -10,7 +10,7 @@ where
     let server_address = get_user_input(
         reader,
         writer,
-        "Enter server address WITH the port (ie nextcloud.myserver.net:443):",
+        "Enter server host (ie nextcloud.myserver.net):",
         true,
     )
     .expect("Error getting server address input");
@@ -28,7 +28,7 @@ where
     let base_notes_directory = get_user_input(
         reader,
         writer,
-        "Enter notes directory, this must exist on your NextCloud account:",
+        "Enter notes relative directory, this must exist on your NextCloud account (ie Notes/subdirectory):",
         true,
     )
     .expect("Error notes directory input");

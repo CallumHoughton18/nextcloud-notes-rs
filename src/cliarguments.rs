@@ -3,11 +3,28 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::vec::IntoIter;
 
+
+const USAGE: &'static str = "
+nxcloudnotes -- A NextCloud CLI dumping tool.
+Usage:
+  nxcloudnotes <command> [<args>...]
+  nxcloudnotes help
+  nxcloudnotes config-path
+  nxcloudnotes \"NOTES BODY\"
+  nxcloudnotes -p\"NxCloudPassword\" \"NOTES BODY\"
+  nxcloudnotes -t\"NOTES TITLE\" \"NOTES BODY\"
+Commands:
+  help             Display usage information.
+  config-path      Output path to .toml config file used for this application.
+  \"\"             Empty strings are treated as the notes body if no other commands are found.
+";
+
+
 #[derive(Debug, PartialEq)]
 pub enum ProgramCommands {
     PostNote(PostNoteCLIConfig),
     ConfigPath,
-    Help,
+    Help(&'static str),
 }
 
 // for internal use only, this is just the content parsed from the given arguments on the command line
@@ -100,12 +117,11 @@ pub fn parse_args(argv: Vec<String>) -> Result<ProgramCommands, String> {
     }
 
     let cmd = match operator {
-        ParsedCommands::ConfigPath=> ProgramCommands::ConfigPath,
-        ParsedCommands::Help => ProgramCommands::Help,
+        ParsedCommands::ConfigPath => ProgramCommands::ConfigPath,
+        ParsedCommands::Help => ProgramCommands::Help(USAGE),
         ParsedCommands::PostNote(content) => ProgramCommands::PostNote(parse_flags_to_post_note_cli_config(flag_map, content))
     };
 
-    println!("{:?}", cmd);
     Ok(cmd)
 }
 
