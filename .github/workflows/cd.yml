@@ -1,24 +1,84 @@
-name: cd
 
+name: cd
 on:
   push:
     tags:
-      - v[0-9]+.*
-
-
+    - "v[0-9]+.[0-9]"
 jobs:
-  release:
-    name: release ${{ matrix.target }}
-    runs-on: ubuntu-latest
+  # create-release:
+  #   name: create-release
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     rg_version: ${{ env.RG_VERSION }}
+  #   steps:
+  #     - name: Get the release version from the tag
+  #       shell: bash
+  #       if: env.RG_VERSION == ''
+  #       run: |
+  #         # Apparently, this is the right way to get a tag name. Really?
+  #         #
+  #         # See: https://github.community/t5/GitHub-Actions/How-to-get-just-the-tag-name/m-p/32167/highlight/true#M1027
+  #         echo "RG_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+  #         echo "version is: ${{ env.RG_VERSION }}"
+  #     - name: Create GitHub release
+  #       id: release
+  #       uses: actions/create-release@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         tag_name: ${{ env.RG_VERSION }}
+  #         release_name: ${{ env.RG_VERSION }}
+
+  build-release:
+    name: build-release
+    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
-        target: [x86_64-pc-windows-gnu, x86_64-unknown-linux-musl]
+        name: [
+            linux,
+            # windows,
+            macos
+        ]
+
+        include:
+          - name: linux
+            os: ubuntu-latest
+            artifact_name: target/release/nxcloudnotes
+            asset_name: nxcloudnotes-linux
+          # - name: windows
+          #   os: windows-latest
+          #   artifact_name: target/release/nxcloudnotes.exe
+          #   asset_name: nxcloudnotes-windows
+          - name: macos
+            os: macos-latest
+            artifact_name: target/release/nxcloudnotes
+            asset_name: nxcloudnotes-macos
+
     steps:
-      - uses: actions/checkout@master
-      - name: Compile and release
-        uses: rust-build/rust-build.action@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUSTTARGET: ${{ matrix.target }}
-          EXTRA_FILES: "README.md LICENSE"
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Install packages (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends openssl
+    - name: Install packages (macOS)
+      if: matrix.os == 'macos-latest'
+      run: brew install openssl@1.1
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+
+    - name: Build
+      run: cargo build --release --locked
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/nxcloudnotes
+        asset_name: ${{ matrix.asset_name }}
+        tag: ${{ github.ref }}
