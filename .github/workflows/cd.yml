@@ -12,7 +12,6 @@ jobs:
       matrix:
         name: [
             linux,
-            windows,
             macos
         ]
 
@@ -21,10 +20,6 @@ jobs:
             os: ubuntu-latest
             artifact_name: target/release/nxcloudnotes
             asset_name: nxcloudnotes-linux
-          - name: windows
-            os: windows-latest
-            artifact_name: target/release/nxcloudnotes.exe
-            asset_name: nxcloudnotes-windows
           - name: macos
             os: macos-latest
             artifact_name: target/release/nxcloudnotes
@@ -42,9 +37,6 @@ jobs:
     - name: Install packages (macOS)
       if: matrix.os == 'macos-latest'
       run: brew install openssl@1.1
-    - name: Install packages (Windows)
-      if: matrix.os == 'windows-latest'
-      run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT"; set VCPKGRS_DYNAMIC=1; vcpkg install openssl:x64-windows
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
