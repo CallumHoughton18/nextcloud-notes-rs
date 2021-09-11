@@ -2,6 +2,9 @@ use crate::configprovider::NxCloudNotesConfigData;
 use crate::utils::get_user_input;
 use std::io::{BufRead, Write};
 
+/// Routine for prompting the user for multiple lines of input required for nxcloudnotes configuration in the form
+/// of the NxCloudNotesConfigData struct, which can be serialized to a file.
+/// On required inputs, the routine will loop until a none empty value is inputted.
 pub fn ask_user_for_config<R, W>(reader: &mut R, writer: &mut W) -> NxCloudNotesConfigData
 where
     R: BufRead,

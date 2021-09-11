@@ -29,9 +29,12 @@ impl<T: HttpRequest> NextCloudClient<T> {
         .set_header("Connection".to_string(), "closed".to_string())
         .send_bytes(content)?;
 
+        // assume all these response codes are a success, this should probably be more verbose
+        // but for a learning exercise this should be fine.
         if (199..300).contains(&call_result.response_code) {
             Ok("File uploaded successfully")
         } else {
+            // so if response_code is in the 300 -> 500 range we can assume the upload failed
             Err(format!("Reponse code {} indicates failure uploading file:\r\n{}", call_result.response_code, call_result.response_msg))?
         }
     }

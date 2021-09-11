@@ -19,7 +19,7 @@ Commands:
   \"\"             Empty strings are treated as the notes body if no other commands are found.
 ";
 
-
+/// Supported commands that can be parsed from the program arguments
 #[derive(Debug, PartialEq)]
 pub enum ProgramCommands {
     PostNote(PostNoteCLIConfig),
@@ -29,12 +29,15 @@ pub enum ProgramCommands {
 
 // for internal use only, this is just the content parsed from the given arguments on the command line
 // what should be returned to the user is the ProgramCommands enum
+// this is used because initially the just the command and raw input is parsed
+// which is internally mapped to a config struxt
 enum ParsedCommands {
     PostNote(String),
     ConfigPath,
     Help
 }
 
+/// Configuration for the PostNote command. Passed via command-line arguments
 #[derive(Debug, PartialEq)]
 pub struct PostNoteCLIConfig {
     pub password: Option<String>,
@@ -84,6 +87,8 @@ impl Iterator for ArgIter {
     fn next(&mut self) -> Option<Arg<String>> {
         let arg = self.args.next()?;
 
+        // to simplify this, the program only supports - arguments
+        // eg -t"TEST_TITLE"
         if arg.starts_with("-") {
             let mut flag = String::from(&arg[1..]);
             if flag.len() > 1 {
@@ -97,13 +102,22 @@ impl Iterator for ArgIter {
     }
 }
 
+/// parses the given argv vector. This SHOULD contain the executable name in the vector.
+/// Defaults to `ParsedCommands::Help` if no arguments are present.
+/// ## Example: 
+/// ```
+/// use nxcloudnotes::cliarguments;
+/// 
+/// let pattern: Vec<String> = std::env::args().collect();
+/// let command = cliarguments::parse_args(pattern).unwrap();
+/// ```
 pub fn parse_args(argv: Vec<String>) -> Result<ProgramCommands, String> {
     let mut args = ArgIter::new(argv);
     // Skip the executable name
     args.next();
 
     let mut operator = ParsedCommands::Help;
-    // each supported flag is placed into a hashmap where it can be used
+    // each supported flag is placed with its corresponding user input
     let mut flag_map = HashMap::new();
 
     while let Some(arg) = args.next() {

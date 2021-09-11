@@ -48,7 +48,7 @@ fn handle_post_note_command(config_provider: FileSystemNxCloudConfig, cli_config
 
     let password = match config_data.password {
         Some(password_string) => password_string,
-        None => cli_config.password.expect("You must provide a password with the -p argument if none is present in the programs config file"),
+        None => cli_config.password.expect("You must provide a password with the -p argument if none is present in the applications config file"),
     };
  
     let title = match cli_config.title {
@@ -71,7 +71,8 @@ fn handle_post_note_command(config_provider: FileSystemNxCloudConfig, cli_config
             println!("successfully uploaded note");
         },
         Err(e) => {
-            println!("an error occured!: {}", e);
+            // Would be better to return a customized error with a friendly message here.
+            println!("an error occured! {}", e);
         }
     }
 }

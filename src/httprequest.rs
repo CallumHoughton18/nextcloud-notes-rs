@@ -7,6 +7,8 @@ use std::io::{Read, Write};
 use openssl::ssl::{SslMethod, SslConnector};
 use std::io::BufRead;
 
+/// Request types supported by the LiteHttpClient
+/// For now, only the ones used by the nxcloudnotes application are supported
 pub enum RequestType {
     GET,
     PUT
@@ -19,6 +21,9 @@ pub struct LiteHttpClient {
     headers: HashMap<String, String>, 
 }
 
+/// A lite http client that is built on top of openssl for connecting to hosts via ssl.
+/// This is purely done as a learning exercise, and Rust has plenty of good generic
+/// http client crates that you could use.
 impl LiteHttpClient {
     pub fn new(base_address: String, port: u32) -> Self {
         LiteHttpClient {
@@ -45,10 +50,12 @@ impl LiteHttpClient {
         let mut reader = BufReader::new(stream);
         let mut top_line = String::new();
         reader.read_line(&mut top_line)?;
-        let response_code: u16 = top_line[9..12].parse().unwrap();
+        let response_code: u16 = top_line[9..12].parse()?;
         reader.read_to_string(&mut buf)?;
         let mut splitter = buf.splitn(2, "\r\n\r\n");
         splitter.next().unwrap();
+        // body of the response is after /r/n/r/n, which is what we want
+        // and this should always be present (I think?) on a http response.
         let second = splitter.next().unwrap();
         Ok(HttpResponse {
             response_code,
@@ -102,6 +109,8 @@ impl HttpRequest for LiteHttpClient {
         let mut request_data = String::new();
         request_data.push_str(&self.request_line);
 
+        // accept all responses for now, as we aren't particulary interested in the response type
+        // as much as the response code to indicate success or failure
         self.headers.insert(String::from("Accept"), String::from("*/*"));
         self.headers.insert(String::from("Content-Length"), bytes.len().to_string());
 
@@ -109,6 +118,7 @@ impl HttpRequest for LiteHttpClient {
             let header_formatted = format!("{}: {}\r\n", key, value);
             request_data.push_str(&header_formatted)
         }
+        // end of http request headers, indicated by the new-line
         request_data.push_str("\r\n");
 
         stream.write_all(request_data.as_bytes())?;

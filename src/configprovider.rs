@@ -21,9 +21,12 @@ pub trait NxCloudConfigRetriever {
     fn create_new_config(&self, config: NxCloudNotesConfigData) -> Result<bool, Box<dyn Error>>;
 }
 
+/// Struct (with implementations) that allow configuration data required by the application to be stored
+/// on disk.
 pub struct FileSystemNxCloudConfig<'a> {
     config_directory: &'a Path,
     config_name: &'a str,
+    /// PathBuf where the config file is stored. This will probably different for each operating system.
     pub config_path : PathBuf,
 }
 

@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::io::{BufRead, Write};
 
+/// Gets the user input from the given `reader` BufRead buffer.
+/// Which will loop if the input is empty and `is_required` is true.
 pub fn get_user_input<R, W>(
     reader: &mut R,
     mut writer: &mut W,
@@ -24,6 +26,7 @@ where
     Ok(buf)
 }
 
+/// Trims any \r and \n characters from the `s` argument.
 fn trim_newline_characters(s: &mut String) {
     if s.ends_with('\n') {
         s.pop();
