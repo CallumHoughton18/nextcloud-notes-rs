@@ -1,5 +1,11 @@
 # nxcloudnotes - a CLI text dumping tool for NextCloud
 
+## About
+
+nxcloudnotes is a command line tool, built using Rust, that allows you to easily dump text files to your NextCloud server.
+
+Built because I often need to dump notes while using the command line that I would later need access to on my phone :)
+
 **This project was purely done as a learning exercise for Rust, and so is not production ready. Crates used have been purposely kept to a minimum for this reason.**
 
 ## Installing
@@ -14,7 +20,7 @@ The binaries for each release can be downloaded [here](https://github.com/Callum
 
 ### Linux
 
-*SHOULD* follow a similar process to the MacOS install (but download the binary ending in -linux, obviously). I already spent longer than I really wanted to on this so I haven't actually tested it on a distro ¯\_(ツ)_/¯
+*SHOULD* follow a similar process to the MacOS install (but download the binary ending in -linux, obviously). I already spent longer than I really wanted to on this so I haven't actually tested it on a distro ¯\\_(ツ)_/¯.
 
 ### Windows
 
